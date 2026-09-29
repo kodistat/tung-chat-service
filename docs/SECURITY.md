@@ -12,7 +12,8 @@ Written 2026-09-29. The whole product is secrecy, so this is the most important 
 **We do not and cannot promise** (and the `/security` page must say so in plain words):
 - That the other person isn't screenshotting, photographing the screen, or copying text.
 - That the device isn't compromised (malware, spyware, a browser extension that reads the page).
-- Anonymity from the network. The server necessarily sees IP addresses while connected. Use Tor Browser or a VPN if that matters to you.
+- That nothing reaches the disk. The operating system can copy browser memory to disk (swap, hibernation files, crash reports), and a web page can't prevent it. Disk encryption makes it unreadable; iPhones don't swap to disk, and Macs encrypt swap. The weak spot is Windows without BitLocker/device encryption.
+- Anonymity from the network. Our server, DigitalOcean, and Cloudflare (which carries App Platform traffic) see IP addresses while you're connected. Use Tor Browser or a VPN if that matters to you.
 - That the JavaScript you're running is the published version (see §4) unless you verify it.
 
 Every item below exists to make the first list true.
@@ -67,7 +68,7 @@ Every visit downloads the code that does the encryption. Whoever controls what t
 - **Subresource Integrity** on every script and stylesheet in `index.html`.
 - **Small, dependency-light bundle.** React + our code; audit the lockfile; pin versions; `pnpm audit` in CI.
 - **Reproducible builds now, open source later (D6).** v1 keeps the repos private but records the SHA-256 of every built file per release. In the second step we publish the source and hashes so anyone can verify that what tung.chat serves equals what the public source builds to. Until then, users are trusting us — the `/security` page should say so.
-- **Domain protection:** registrar lock, DNSSEC, HSTS preload for `tung.chat`, 2FA on registrar, GitHub, and the server provider.
+- **Domain protection:** registrar lock, HSTS, 2FA on registrar, GitHub, and DigitalOcean. DNSSEC is not possible while on App Platform (it rejects DNSSEC-enabled domains); add it after the move to our own server. Submit to the HSTS preload list only once the setup is stable — removal is slow and hard.
 
 ## 5. Required HTTP security headers (Caddy in the `web` container)
 
@@ -97,8 +98,8 @@ The WebSocket endpoint must check the `Origin` header equals `https://tung.chat`
 - the IP addresses of both sockets.
 
 What we do about it:
-- **Nothing is written down.** Only allowlisted log fields (event type, counts, durations, error codes). A test asserts that pseudonyms and IPs never appear in log output.
-- **Access logs off** in our own Caddy and Node. **Accepted gap for now (D7):** DigitalOcean App Platform's router terminates TLS and logs client IPs and request paths (`/`, `/ws`), and we can't turn that off. It sees no content — frames are encrypted end-to-end. Moving to our own server with access logs off closes this; revisit before any growth push.
+- **Nothing is written down.** Only allowlisted log fields (event type, counts, durations, error codes). The logger accepts numbers and booleans only, so pseudonyms, IPs, and ids can't be logged by accident (`src/common/logger.ts`).
+- **Access logs off** in our own Caddy and Node. **Accepted gap for now (D7):** App Platform traffic reaches us through **Cloudflare** (responses carry `server: cloudflare`, confirmed 2026-09-29) and then DigitalOcean's router. Both terminate TLS, both can log client IPs, request paths (`/`, `/ws`), and connection timing, and we can't turn that off. They see no content — frames are encrypted end-to-end in the browser — but they are a TLS-terminating middlebox, so the page itself travels decrypted through them (one more reason for SRI and, later, published build hashes). Moving to our own server with access logs off removes both; revisit before any growth push.
 - **IP only for rate limiting**, as an HMAC with a random daily salt held in memory, dropped after an hour of inactivity.
 - **No disk writes** by our process; on the later self-hosted setup, also no swap so live pseudonyms are never paged to disk.
 - **Pseudonyms are the users' problem to keep meaningless.** The UI suggests random names and warns against using real names.
@@ -119,6 +120,7 @@ What we do about it:
 ## 8. Client-side hygiene
 
 - No `localStorage`, `sessionStorage`, IndexedDB, or cookies (enforced by a lint rule).
+- The ended screen tells people to close the tab, and the `/security` page lists what they can do themselves for a clean finish: close the tab, private window, disk encryption on, crash reports off.
 - No conversation data in the URL, page title, or history.
 - On `end`, `ended`, `pagehide`, or tab close: drop keys, zero out transcript state, close the socket.
 - Blur the transcript when the page is hidden (mobile app-switcher previews).

@@ -66,7 +66,7 @@ The chat channel is already encrypted at this point, but chat is locked. Only th
 - Idle limit: if no message in either direction for 30 minutes, the conversation ends.
 
 ### 2.6 Ended
-- `conversation ended. nothing was kept.` Then back to Home after a few seconds.
+- `conversation ended. nothing was kept.` plus the hint `For a clean finish, close this tab.` The screen stays until the person presses `[ home ]` or closes the tab (it shows no conversation content; the hint needs time to be read).
 - The reason is shown in neutral terms: `ended by you`, `ended by the other side`, `connection lost`, `timed out`.
 - Pseudonyms are released. To talk again, both pick new names and start over.
 

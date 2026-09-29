@@ -30,7 +30,7 @@ Two people open tung.chat in a browser (desktop or phone). Each picks a throwawa
 3. **No database.** All server state is in memory with short TTLs. This is a deliberate departure from every other Kodistat service (no Postgres, no Knex, no migrations).
 4. **Frontend: Vite + React static SPA**, not Next.js. The deciding constraint is lockdown: a static bundle with no server runtime is easier to audit, pin with a strict Content-Security-Policy and Subresource Integrity, and serve from a box we fully control. See [ARCHITECTURE.md §1](ARCHITECTURE.md#1-stack).
 5. **Backend: NestJS 12 on Express** with raw WebSockets (`ws`), matching the other Kodistat services.
-6. **DigitalOcean App Platform for now (D7)**, like the other Kodistat services. The app runs as a small Caddy container (so we control security headers); the relay runs as a single-instance Node service. Trade-off accepted for now: DO's router logs visitor IPs. Moving to our own server is a later step.
+6. **DigitalOcean App Platform for now (D7)**, like the other Kodistat services. The app runs as a small Caddy container (so we control security headers); the relay runs as a single-instance Node service. Trade-off accepted for now: DigitalOcean and Cloudflare (which carries App Platform traffic) can log visitor IPs. Moving to our own server is a later step.
 
 ## Decisions
 
@@ -44,4 +44,4 @@ These were gaps in the original spec. Answered 2026-09-29: D1–D5 as recommende
 | D4 | Should messages fade from the screen after a while even during the chat? | **Optional per chat**, off by default, chosen by the initiator at go time (1 / 5 / 15 min). |
 | D5 | Languages? | **English + Albanian** (same as Slothify), English default. |
 | D6 | Do we open-source the app repo? | **Not now — second step.** Repos stay private for v1. We still keep the build reproducible and record file hashes per release so publishing later is easy. |
-| D7 | Hosting: our own VPS or DigitalOcean App Platform? | **App Platform for now**; own server later. Accepted cost: App Platform's router logs visitor IPs and we can't disable it (content stays encrypted either way). |
+| D7 | Hosting: our own VPS or DigitalOcean App Platform? | **App Platform for now**; own server later. Accepted cost: App Platform traffic goes through Cloudflare and DO's router, which can log visitor IPs; we can't disable that (content stays encrypted either way). |

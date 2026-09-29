@@ -7,7 +7,7 @@ Written 2026-09-29. Two repositories: `tung-chat-app` (browser client) and `tung
 ```
   Browser A                 DigitalOcean App Platform (tung.chat)                Browser B
  ┌─────────────┐          ┌──────────────────────────────────────┐          ┌─────────────┐
- │ React SPA   │ wss://…  │ DO router (TLS, path routing)        │ wss://…  │ React SPA   │
+ │ React SPA   │ wss://…  │ Cloudflare → DO router (TLS, routes) │ wss://…  │ React SPA   │
  │ keys in RAM ├─────────►│   /        → web: Caddy container,   │◄─────────┤ keys in RAM │
  │ WebCrypto   │ /ws      │               static build + headers │ /ws      │ WebCrypto   │
  └─────────────┘          │   /ws, /health → api: NestJS relay   │          └─────────────┘
@@ -154,6 +154,7 @@ DigitalOcean App Platform, one app with two components (spec in `tung-chat-servi
 - **Client IP** for rate limiting comes from the `do-connecting-ip` header, read only when `TRUSTED_IP_HEADER` is set (unset in local dev).
 - **Deploys end conversations.** On SIGTERM the relay sends `ended{server_restart}` to everyone and closes with `4005`. Deploy at quiet hours.
 - **Release:** CI builds the app and records the SHA-256 of every output file per release (ready for when the code is published, D6).
-- **Logs:** our process logs only allowlisted fields (SECURITY §6). DO's router keeps its own request logs with client IPs; accepted for now (D7).
+- **Logs:** our process logs only allowlisted fields (SECURITY §6). App Platform traffic passes through Cloudflare and DO's router, which keep their own request logs with client IPs; accepted for now (D7).
 - **Later (own server):** Caddy + systemd on a VPS, access logs off, no swap. The containers above move over unchanged.
-- **DNS/registrar:** enable registrar lock and DNSSEC on `tung.chat`; a hijacked domain is the easiest way to serve modified JavaScript.
+- **DNS/registrar:** enable registrar lock and 2FA on `tung.chat`; a hijacked domain is the easiest way to serve modified JavaScript. **No DNSSEC while on App Platform** — it doesn't accept DNSSEC-enabled domains. Turn it on after moving to our own server (D7).
+- **Root domain DNS:** `tung.chat` points at the app with a flattened CNAME (if the DNS provider supports it) or the A records App Platform shows; DNS does not need to move to DigitalOcean.

@@ -15,7 +15,7 @@ Status 2026-09-29: steps 1–7 and 9 done (Playwright in step 7 replaced by a No
 | 5 | app | `crypto/` (keys, commitment, channel, padding, safety code) | Unit tests incl. known-answer tests, replay rejection, tamper → end |
 | 6 | app | State machine + socket layer + screens: Claim, Lobby, Verify, Chat, Ended | Full flow between two browser windows locally |
 | 7 | both | Playwright two-context e2e (desktop + mobile viewport), "server can't read" test, log-leak test | Green in CI |
-| 8 | ops | App Platform app (`web` Caddy container + `api`, 1 instance, `preserve_path_prefix`), CSP report-only first, DNSSEC, HSTS | Staging at a private subdomain |
+| 8 | ops | App Platform app (`web` Caddy container + `api`, 1 instance, `preserve_path_prefix`), CSP report-only first, HSTS (DNSSEC only after leaving App Platform) | Staging at a private subdomain |
 | 9 | app | `/how` and `/security` plain-language pages, English + Albanian strings | Reviewed by you |
 | 10 | ops | CSP enforced, build hashes recorded, launch | tung.chat live |
 
