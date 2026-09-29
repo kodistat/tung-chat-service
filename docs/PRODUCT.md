@@ -57,7 +57,8 @@ The chat channel is already encrypted at this point, but chat is locked. Only th
 - Verification has a 10-minute limit. After that the conversation ends automatically.
 
 ### 2.5 Chat
-- Plain terminal-style transcript: `quiet-heron-42 > message`. Own lines dimmer or prefixed with `you >`.
+- Transcript like a chat app, in terminal style: the other person's messages on the left (white edge, their name above each run), own messages on the right (green edge, no label). Messages stack up from the input, so a short conversation sits next to the keyboard.
+- Mobile: the chat is pinned to the *visible* area (`visualViewport`), so the iOS keyboard can't push the header and first messages off-screen. Tapping send keeps the keyboard open.
 - Text only in v1. Max 2,000 characters per message. No files, no images, no links preview (links render as plain text, not clickable, to avoid accidental navigation that leaks a referrer or IP).
 - Status line: `● encrypted · safety code: ember north violin tide delta · 12:04 open`.
 - Peer connection status: `peer lost connection, waiting 45s…` (D3). If they come back, the chat continues; if not, it ends.
