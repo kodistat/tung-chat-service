@@ -1,0 +1,56 @@
+# DigitalOcean App Platform spec for tung.chat (docs/ARCHITECTURE.md §4).
+# Apply with: doctl apps create --spec deploy/app.yaml   (or update <app-id> --spec ...)
+name: tung-chat
+region: fra
+domains:
+  - domain: tung.chat
+    type: PRIMARY
+services:
+  - name: api
+    github:
+      repo: kodistat/tung-chat-service
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    # Must stay 1: all state is in memory (docs/ARCHITECTURE.md §2.2).
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    health_check:
+      http_path: /health
+    envs:
+      - key: ALLOWED_ORIGINS
+        value: https://tung.chat
+      - key: TRUSTED_IP_HEADER
+        value: do-connecting-ip
+      - key: LOG_LEVEL
+        value: info
+  - name: web
+    github:
+      repo: kodistat/tung-chat-app
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+ingress:
+  rules:
+    # App Platform strips the matched prefix unless preserve_path_prefix is set.
+    - match:
+        path:
+          prefix: /ws
+      component:
+        name: api
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /health
+      component:
+        name: api
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /
+      component:
+        name: web
